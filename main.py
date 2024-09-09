@@ -1,4 +1,3 @@
-import kivy
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.image import Image
@@ -20,11 +19,11 @@ class monkey(Image):
     def on_touch_down(self, touch):
         if self.jump_sound:
             self.jump_sound.play()
-        self.velocity = 170
+        self.velocity = Window.height * 0.2  # Adjust jump velocity based on window height
 
     def move(self, dt):
         self.y += self.velocity * dt
-        self.velocity -= 300 * dt
+        self.velocity -= Window.height * 0.5 * dt  # Adjust gravity effect
 
         if self.y < 0:
             self.y = 0
@@ -34,9 +33,9 @@ class monkey(Image):
 class stick(Widget):
     def __init__(self, **kwargs):
         super(stick, self).__init__(**kwargs)
-        self.gap_size = 200
-        self.top_stick = Image(source='stick_top.png', size_hint=(None, None), size=(50, 400), allow_stretch=True, keep_ratio=False)
-        self.bottom_stick = Image(source='stick_bottom.png', size_hint=(None, None), size=(50, 400), allow_stretch=True, keep_ratio=False)
+        self.gap_size = Window.height * 0.4  # Adjust gap size relative to window height
+        self.top_stick = Image(source='stick_top.png', size_hint=(None, None), size=(Window.width * 0.1, Window.height * 0.5), allow_stretch=True, keep_ratio=False)
+        self.bottom_stick = Image(source='stick_bottom.png', size_hint=(None, None), size=(Window.width * 0.1, Window.height * 0.5), allow_stretch=True, keep_ratio=False)
         self.add_widget(self.top_stick)
         self.add_widget(self.bottom_stick)
         self.reset_position()
@@ -50,8 +49,8 @@ class stick(Widget):
         self.passed = False
 
     def move(self, dt):
-        self.top_stick.x -= 200 * dt
-        self.bottom_stick.x -= 200 * dt
+        self.top_stick.x -= Window.width * 0.5 * dt  # Adjust stick speed relative to window width
+        self.bottom_stick.x -= Window.width * 0.5 * dt
 
         if self.top_stick.x < -self.top_stick.width:
             self.reset_position()
@@ -69,8 +68,8 @@ class ScrollingBackground(Widget):
         self.add_widget(self.bg2)
 
     def move(self, dt):
-        self.bg1.x -= 100 * dt
-        self.bg2.x -= 100 * dt
+        self.bg1.x -= Window.width * 0.2 * dt  # Adjust background scroll speed
+        self.bg2.x -= Window.width * 0.2 * dt
 
         if self.bg1.right <= 0:
             self.bg1.x = self.bg2.right
@@ -101,14 +100,14 @@ class Game(Widget):
         self.add_widget(self.background)
         
         # Create monkey
-        self.monkey = monkey(source='monkey.png', size=(70, 70), pos=(100, Window.height / 2))
+        self.monkey = monkey(source='monkey.png', size=(Window.width * 0.15, Window.height * 0.15), pos=(Window.width * 0.2, Window.height / 2))
         self.monkey.jump_sound = self.jump_sound
         self.stick = stick()
         self.add_widget(self.monkey)
         self.add_widget(self.stick)
 
         # Create score label
-        self.score_label = Label(text="Score: 0", font_size='20sp', pos=(0, Window.height - 50))
+        self.score_label = Label(font_size=Window.height * 0.1, pos=(Window.width * 0.5, Window.height * 0.8))
         self.add_widget(self.score_label)
 
     def start_game(self):
@@ -129,7 +128,7 @@ class Game(Widget):
 
         if (self.monkey.x > self.stick.top_stick.x + self.stick.top_stick.width and not self.stick.passed):
             self.score += 1
-            self.score_label.text = "Score: " + str(self.score)
+            self.score_label.text = str(self.score)
             self.stick.passed = True
             if self.score_sound:
                 self.score_sound.play()
@@ -139,10 +138,10 @@ class Game(Widget):
         if self.background_music:
             self.background_music.stop()
 
-        self.game_over_image = Image(source='game_over.png', size_hint=(None, None), size=(300, 300), pos=(50, 300))
+        self.game_over_image = Image(source='game_over.png', size_hint=(None, None), size=(Window.width * 0.7, Window.height * 0.7), pos=(Window.width * 0.15, Window.height * 0.15))
         self.add_widget(self.game_over_image)
 
-        self.continue_button = Button(text="Replay", size_hint=(None, None), size=(200, 50), pos=(100, 200))
+        self.continue_button = Button(text="Replay", size_hint=(None, None), size=(Window.width * 0.5, Window.height * 0.1), pos=(Window.width * 0.25, Window.height * 0.05))
         self.continue_button.background_color = (3, 1, 0, 1)
         self.continue_button.color = (1, 1, 1, 1)
         self.continue_button.bind(on_press=self.restart_game)
@@ -153,7 +152,7 @@ class Game(Widget):
         self.remove_widget(self.continue_button)
         self.score = 0
         self.score_label.text = "Score: 0"
-        self.monkey.pos = (100, Window.height / 2)
+        self.monkey.pos = (Window.width * 0.2, Window.height / 2)
         self.monkey.velocity = 0
         self.stick.reset_position()
 
@@ -166,8 +165,8 @@ class FlappyWukongApp(App):
     def build(self):
         self.root = Widget()
         self.game = Game()
-        self.start_button = Button(text="Start", size_hint=(None, None), size=(200, 50), pos=(100, Window.height / 3))
-        self.start_button.background_color = (2,0 , 0, 1)
+        self.start_button = Button(text="Start", size_hint=(None, None), size=(Window.width * 0.5, Window.height * 0.1), pos=(Window.width * 0.25, Window.height * 0.4))
+        self.start_button.background_color = (0, 1, 0, 1)
         self.start_button.color = (1, 1, 1, 1)
         self.start_button.bind(on_press=self.start_game)
 
@@ -177,7 +176,7 @@ class FlappyWukongApp(App):
 
     def start_game(self, instance):
         self.game.start_game()
-        self.root.remove_widget(self.start_button)  # Correctly remove the start button from the root widget
+        self.root.remove_widget(self.start_button)
 
 if __name__ == '__main__':
     FlappyWukongApp().run()
