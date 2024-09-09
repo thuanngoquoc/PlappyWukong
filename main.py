@@ -10,7 +10,7 @@ from kivy.core.audio import SoundLoader
 from random import randint
 
 # Set full-screen window size for mobile devices
-Window.fullscreen = True
+Window.size = (Window.width, Window.height)
 
 class monkey(Image):
     velocity = NumericProperty(0)
